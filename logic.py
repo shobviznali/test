@@ -76,9 +76,14 @@ class DB_Manager:
         sql = 'INSERT INTO projects (user_id, project_name, url, status_id) values(?, ?, ?, ?)'
         self.__executemany(sql, [data])
 
-    def insert_skill(self, user_id, project_id, skill_id):
+
+    def insert_skill(self, user_id, project_name, skill):
+        sql = 'SELECT project_id FROM projects WHERE project_name = ? AND user_id = ?'
+        project_id = self.__select_data(sql, (project_name, user_id))[0][0]
+        skill_id = self.__select_data('SELECT id FROM skills WHERE skill_name = ?', (skill,))
+        data = [(project_id, skill_id)]
         sql = 'INSERT INTO project_skills VALUES(?, ?)'
-        self.__executemany(sql, [(user_id, project_id, skill_id)])
+        self.__executemany(sql, data)
 
 
   
@@ -86,10 +91,6 @@ class DB_Manager:
         sql='SELECT status_name from status'
         return self.__select_data(sql)
         
-    def get_project_id(self, project_name, user_id):
-        sql = 'SELECT project_id FROM projects WHERE project_name = ? AND user_id = ?'
-        res = self.__select_data(sql, (project_name, user_id))[0][0]
-        return res
         
     def get_status_id(self, status_name):
         sql = 'SELECT status_id FROM status WHERE status_name = ?'
