@@ -9,11 +9,8 @@ class DB_Manager:
         self.database = database
 
     def create_tables(self):
-        # Устанавливаем соединение с базой данных
         conn = sqlite3.connect(self.database)
-
         with conn:
-            # Создаем таблицу projects
             conn.execute('''CREATE TABLE projects (
                             project_id INTEGER PRIMARY KEY,
                             user_id INTEGER,
@@ -23,29 +20,21 @@ class DB_Manager:
                             status_id INTEGER,
                             FOREIGN KEY(status_id) REFERENCES status(status_id)
                         )''') 
-
-            # Создаем таблицу skills
             conn.execute('''CREATE TABLE skills (
                             skill_id INTEGER PRIMARY KEY,
                             skill_name TEXT
                         )''')
-
-            # Создаем связующую таблицу project_skills
             conn.execute('''CREATE TABLE project_skills (
                             project_id INTEGER,
                             skill_id INTEGER,
                             FOREIGN KEY(project_id) REFERENCES projects(project_id),
                             FOREIGN KEY(skill_id) REFERENCES skills(skill_id)
                         )''')
-            
             conn.execute('''CREATE TABLE status (
                             status_id INTEGER PRIMARY KEY,
                             status_name TEXT
                         )''')
-
-            # Сохраняем изменения и закрываем соединение
             conn.commit()
-
         print("База данных успешно создана.")
 
     def __executemany(self, sql, data):
@@ -59,8 +48,7 @@ class DB_Manager:
             cur = conn.cursor()
             cur.execute(sql, data)
             return cur.fetchall()
-
-
+            
 
     def default_insert(self):
         sql = 'INSERT INTO skills (skill_name) values(?)'
@@ -71,27 +59,22 @@ class DB_Manager:
         self.__executemany(sql, data)
 
 
-
     def insert_project(self, data):
         sql = 'INSERT INTO projects (user_id, project_name, url, status_id) values(?, ?, ?, ?)'
         self.__executemany(sql, [data])
 
-
     def insert_skill(self, user_id, project_name, skill):
         sql = 'SELECT project_id FROM projects WHERE project_name = ? AND user_id = ?'
         project_id = self.__select_data(sql, (project_name, user_id))[0][0]
-        skill_id = self.__select_data('SELECT id FROM skills WHERE skill_name = ?', (skill,))
-        data = [(project_id, skill_id)]
-        sql = 'INSERT INTO project_skills VALUES(?, ?)'
+        skill_id = self.__select_data('SELECT skill_id FROM skill WHERE skill_name = ?', (skill,))[0][0]
+        data = [(skill_id, project_id)]
+        sql = 'INSERT OR IGNORE INTO project_skills VALUES (?, ?)'
         self.__executemany(sql, data)
-
-
 
   
     def get_statuses(self):
         sql='SELECT status_name from status'
         return self.__select_data(sql)
-
         
     def get_status_id(self, status_name):
         sql = 'SELECT status_id FROM status WHERE status_name = ?'
@@ -102,8 +85,19 @@ class DB_Manager:
     def get_projects(self, user_id):
         return self.__select_data(sql='SELECT * FROM projects WHERE user_id = ?', data = (user_id,))
 
+    def get_project_id(self, project_name, user_id):
+        return self.__select_data(sql='SELECT project_id FROM projects WHERE project_name = ? AND user_id = ?  ', data = (project_name, user_id,))[0][0]
+
     def get_skills(self):
         return self.__select_data(sql='SELECT * FROM skills')
+    
+    def get_project_skills(self, project_name):
+        res = self.__select_data(sql='''SELECT skill_name FROM 
+(SELECT * FROM projects 
+JOIN project_skills ON projects.project_id = project_skills.project_id 
+JOIN skill ON skill.skill_id = project_skills.skill_id 
+WHERE project_name = ?)''', data = (project_name,) )
+        return ', '.join([x[0] for x in res])
     
     def get_project_info(self, user_id, project_name):
         sql = """
@@ -113,9 +107,8 @@ JOIN status ON
 status.status_id = projects.status_id)
 WHERE project_name=? AND user_id=?
 """
-        return self.__select_data(sql=sql, data = (project_name, user_id))[0]
+        return self.__select_data(sql=sql, data = (project_name, user_id))
     
-
 
     def update_projects(self, param, data):
         self.__executemany(f"UPDATE projects SET {param} = ? WHERE project_name = ? AND user_id = ?", [data]) # data ('atr', 'mew', 'name', 'user_id')
@@ -132,4 +125,5 @@ WHERE project_name=? AND user_id=?
 
 if __name__ == '__main__':
     manager = DB_Manager(DATABASE)
-
+    manager.create_tables()
+    manager.default_insert()
