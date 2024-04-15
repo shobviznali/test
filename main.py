@@ -22,7 +22,7 @@ def gen_inline_markup(rows):
     return markup
 
 def gen_markup(rows):
-    markup = ReplyKeyboardMarkup()
+    markup = ReplyKeyboardMarkup(one_time_keyboard=True)
     markup.row_width = 1
     for row in rows:
         markup.add(KeyboardButton(row))
@@ -61,7 +61,10 @@ def info(message):
 Вот команды которые могут тебе помочь:
 
 /new_project - используй для добавления нового проекта
-Добавь описание команд...
+/projects - используй для отображения всех проектов
+/update_projects - используй для изменения данных о проекте
+/skills - используй для привязки навыков к проекту
+/delete - используй для удаления проекта
 
 Также ты можешь ввести имя проекта и узнать информацию о нем!""")
     
