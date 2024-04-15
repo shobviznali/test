@@ -1,3 +1,4 @@
+
 import sqlite3
 from config import DATABASE
 
@@ -90,14 +91,6 @@ class DB_Manager:
 
     def get_skills(self):
         return self.__select_data(sql='SELECT * FROM skill')
-    
-    def get_project_skills(self, project_name):
-        res = self.__select_data(sql='''SELECT skill_name FROM 
-(SELECT * FROM projects 
-JOIN project_skills ON projects.project_id = project_skills.project_id 
-JOIN skill ON skill.skill_id = project_skills.skill_id 
-WHERE project_name = ?)''', data = (project_name,) )
-        return ', '.join([x[0] for x in res])
     
     def get_project_skills(self, project_name):
         res = self.__select_data(sql='''SELECT skill_name FROM 
