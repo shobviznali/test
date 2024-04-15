@@ -95,7 +95,7 @@ class DB_Manager:
         res = self.__select_data(sql='''SELECT skill_name FROM 
 (SELECT * FROM projects 
 JOIN project_skills ON projects.project_id = project_skills.project_id 
-JOIN skill ON skill.skill_id = project_skills.skill_id 
+JOIN skills ON skills.skill_id = project_skills.skill_id 
 WHERE project_name = ?)''', data = (project_name,) )
         return ', '.join([x[0] for x in res])
     
