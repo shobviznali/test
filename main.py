@@ -1,4 +1,3 @@
-
 from logic import DB_Manager
 from config import *
 from telebot import TeleBot
@@ -23,7 +22,7 @@ def gen_inline_markup(rows):
     return markup
 
 def gen_markup(rows):
-    markup = ReplyKeyboardMarkup(one_time_keyboard=True)
+    markup = ReplyKeyboardMarkup()
     markup.row_width = 1
     for row in rows:
         markup.add(KeyboardButton(row))
@@ -62,10 +61,7 @@ def info(message):
 Вот команды которые могут тебе помочь:
 
 /new_project - используй для добавления нового проекта
-/projects - используй для отображения всех проектов
-/update_projects - используй для изменения данных о проекте
-/skills - используй для привязки навыков к проекту
-/delete - используй для удаления проекта
+Добавь описание команд...
 
 Также ты можешь ввести имя проекта и узнать информацию о нем!""")
     
@@ -99,7 +95,7 @@ def callback_project(message, data, statuses):
         return
     status_id = manager.get_status_id(status)
     data.append(status_id)
-    manager.insert_project(tuple(data))
+    manager.insert_project([tuple(data)])
     bot.send_message(message.chat.id, "Проект сохранен")
     info(message)
 
