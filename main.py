@@ -34,8 +34,7 @@ attributes_of_projects = {'Имя проекта' : ["Введите новое 
                           "Ссылка" : ["Введите новую ссылку на проект", "url"],
                           "Статус" : ["Выберите новый статус задачи", "status_id"]}
 
-def info_project(message, project_name):
-    user_id = message.from_user.id
+def info_project(message, user_id, project_name):
     info = manager.get_project_info(user_id, project_name)[0]
     skills = manager.get_project_skills(project_name)
     if not skills:
@@ -100,7 +99,6 @@ def callback_project(message, data, statuses):
     data.append(status_id)
     manager.insert_project([tuple(data)])
     bot.send_message(message.chat.id, "Проект сохранен")
-    info(message)
 
 
 @bot.message_handler(commands=['skills'])
@@ -157,8 +155,7 @@ def get_projects(message):
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
     project_name = call.data
-    info_project(call.message, project_name)
-    info(call.message)
+    info_project(call.message, call.from_user.id, project_name)
 
 
 @bot.message_handler(commands=['delete'])
@@ -214,6 +211,7 @@ def update_project_step_2(message, projects):
 
 def update_project_step_3(message, project_name):
     attribute = message.text
+    reply_markup = None 
     if message.text == cancel_button:
         cansel(message)
         return
@@ -224,7 +222,7 @@ def update_project_step_3(message, project_name):
     elif attribute == "Статус":
         rows = manager.get_statuses()
         reply_markup=gen_markup([x[0] for x in rows])
-        bot.send_message(message.chat.id, attributes_of_projects[attribute][0], reply_markup = reply_markup if reply_markup else None )
+    bot.send_message(message.chat.id, attributes_of_projects[attribute][0], reply_markup = reply_markup)
     bot.register_next_step_handler(message, update_project_step_4, project_name=project_name, attribute=attributes_of_projects[attribute][1])
 
 def update_project_step_4(message, project_name, attribute): 
@@ -243,7 +241,6 @@ def update_project_step_4(message, project_name, attribute):
     data = (update_info, project_name, user_id)
     manager.update_projects(attribute, data)
     bot.send_message(message.chat.id, "Готово! Обновления внесены!)")
-    info(message)
 
 
 @bot.message_handler(func=lambda message: True)
@@ -252,7 +249,7 @@ def text_handler(message):
     projects =[ x[2] for x in manager.get_projects(user_id)]
     project = message.text
     if project in projects:
-        info_project(message, project)
+        info_project(message, user_id, project)
         return
     bot.reply_to(message, "Тебе нужна помощь?")
     info(message)
