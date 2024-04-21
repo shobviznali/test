@@ -35,7 +35,7 @@ attributes_of_projects = {'Имя проекта' : ["Введите новое 
                           "Статус" : ["Выберите новый статус задачи", "status_id"]}
 
 def info_project(message, project_name):
-    user_id = message.chat.id
+    user_id = message.from_user.id
     info = manager.get_project_info(user_id, project_name)[0]
     skills = manager.get_project_skills(project_name)
     if not skills:
@@ -223,8 +223,8 @@ def update_project_step_3(message, project_name):
         return
     elif attribute == "Статус":
         rows = manager.get_statuses()
-        reply_markup = reply_markup=gen_markup([x[0] for x in rows])
-    bot.send_message(message.chat.id, attributes_of_projects[attribute][0], reply_markup=reply_markup)
+        reply_markup=gen_markup([x[0] for x in rows])
+        bot.send_message(message.chat.id, attributes_of_projects[attribute][0], reply_markup = reply_markup if reply_markup else None )
     bot.register_next_step_handler(message, update_project_step_4, project_name=project_name, attribute=attributes_of_projects[attribute][1])
 
 def update_project_step_4(message, project_name, attribute): 
